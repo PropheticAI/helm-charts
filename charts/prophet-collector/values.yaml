@@ -61,11 +61,11 @@ persistence:
 # -- Resource requests and limits
 resources:
   requests:
-    cpu: 100m
-    memory: 256Mi
+    cpu: 250m
+    memory: 512Mi
   limits:
-    cpu: "2"
-    memory: 2Gi
+    cpu: "4"
+    memory: 8Gi
 
 # -- Node selector for scheduling
 nodeSelector: {}
