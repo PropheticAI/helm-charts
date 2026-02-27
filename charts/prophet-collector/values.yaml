@@ -59,13 +59,11 @@ persistence:
   hostPath: /var/lib/prophet-collector
 
 # -- Resource requests and limits
+# -- Resource requests (no limits — collector auto-scales memory based on system RAM)
 resources:
   requests:
     cpu: 250m
     memory: 512Mi
-  limits:
-    cpu: "4"
-    memory: 8Gi
 
 # -- Node selector for scheduling
 nodeSelector: {}
