@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "prophet-collector.fullname" . }}
+  labels:
+    {{- include "prophet-collector.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "prophet-collector.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "prophet-collector.selectorLabels" . | nindent 8 }}
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: collector
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            capabilities:
+              add:
+                - NET_RAW
+                - NET_ADMIN
+          env:
+            - name: env
+              value: {{ .Values.env | quote }}
+            - name: org_token
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "prophet-collector.fullname" . }}
+                  key: org-token
+            # Data sources
+            - name: packet
+              value: {{ .Values.dataSources.packet | quote }}
+            - name: netflow
+              value: {{ .Values.dataSources.netflow | quote }}
+            - name: suricata
+              value: {{ .Values.dataSources.suricata | quote }}
+            # Identity — use K8s node name for stable machine_id
+            - name: dynamic_node
+              value: "true"
+            - name: hostname
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            # Packet capture
+            - name: dpi
+              value: {{ .Values.packetCapture.dpi | quote }}
+            - name: afpacket
+              value: {{ .Values.packetCapture.afpacket | quote }}
+            - name: gre
+              value: {{ .Values.packetCapture.gre | quote }}
+            {{- if .Values.packetCapture.extractPayload }}
+            - name: payload
+              value: "true"
+            {{- end }}
+            {{- if .Values.packetCapture.correlateProcessIds }}
+            - name: processes
+              value: "true"
+            {{- end }}
+            {{- if .Values.packetCapture.interfaces }}
+            - name: interfaces
+              value: {{ join "," .Values.packetCapture.interfaces | quote }}
+            {{- end }}
+            {{- if .Values.packetCapture.excludeInterfaces }}
+            - name: exclude_interfaces
+              value: {{ join "," .Values.packetCapture.excludeInterfaces | quote }}
+            {{- end }}
+            # Performance
+            {{- if .Values.performance.numWorkers }}
+            - name: num_workers
+              value: {{ .Values.performance.numWorkers | quote }}
+            {{- end }}
+            - name: num_spoolers
+              value: {{ .Values.performance.numSpoolers | quote }}
+            {{- if .Values.performance.slim }}
+            - name: slim
+              value: "true"
+            {{- end }}
+            # Tags
+            {{- if .Values.tags }}
+            - name: tags
+              value: {{ join "," .Values.tags | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: prophet-state
+              mountPath: /usr/local/prophet
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: prophet-state
+          {{- if .Values.persistence.enabled }}
+          hostPath:
+            path: {{ .Values.persistence.hostPath | default "/var/lib/prophet-collector" }}
+            type: DirectoryOrCreate
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

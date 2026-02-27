@@ -1,0 +1,78 @@
+# Prophet Collector Helm Chart - values.yaml
+
+# -- Organization token for device authorization (required)
+# Get this from the Prophet UI: Nodes > New Node > Organization Token
+orgToken: ""
+
+# -- Prophet environment (prod or dev)
+env: prod
+
+# -- Container image configuration
+image:
+  repository: propheticai/go-collector
+  tag: latest
+  pullPolicy: Always
+
+# -- Data sources to enable
+dataSources:
+  # -- Enable packet capture (AF_PACKET)
+  packet: true
+  # -- Enable NetFlow/IPFIX collection (UDP 2055/9991)
+  netflow: false
+  # -- Enable Suricata log forwarding
+  suricata: false
+
+# -- Packet capture settings
+packetCapture:
+  # -- Enable deep packet inspection (TLS/DNS parsing)
+  dpi: true
+  # -- Enable AF_PACKET (Linux ring buffer, recommended)
+  afpacket: true
+  # -- Unpack GRE encapsulated packets
+  gre: false
+  # -- Extract cleartext payload data
+  extractPayload: false
+  # -- Correlate packets with process IDs
+  correlateProcessIds: false
+  # -- Network interfaces to monitor (empty = all)
+  interfaces: []
+  # -- Network interfaces to exclude
+  excludeInterfaces: []
+
+# -- Performance tuning
+performance:
+  # -- Number of packet decoder workers (0 = auto, uses CPU count)
+  numWorkers: 0
+  # -- Number of parallel spooler instances
+  numSpoolers: 4
+  # -- Slim mode for resource-constrained nodes
+  slim: false
+
+# -- Tags to add to all flows (comma-separated or list)
+tags: []
+
+# -- Persistent storage for collector state (credentials, node_id)
+persistence:
+  # -- Enable persistent storage (uses hostPath for per-node state)
+  enabled: true
+  # -- Host path on each node for collector state
+  hostPath: /var/lib/prophet-collector
+
+# -- Resource requests and limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+# -- Node selector for scheduling
+nodeSelector: {}
+
+# -- Tolerations (to run on all nodes including masters)
+tolerations:
+  - operator: Exists
+
+# -- Additional environment variables
+extraEnv: []
