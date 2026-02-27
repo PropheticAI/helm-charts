@@ -3,6 +3,29 @@ entries:
   prophet-collector:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2026-02-27T05:49:40.880548238Z"
+    description: Prophet network collector — deploys a DaemonSet that captures traffic
+      on every node in the cluster
+    digest: 6a053fe236e487b06653b122f79486190bc2a33de3b99886886a47d672077087
+    home: https://prophet.io
+    keywords:
+    - network
+    - monitoring
+    - collector
+    - packet-capture
+    - ndr
+    maintainers:
+    - name: PropheticAI
+      url: https://prophet.io
+    name: prophet-collector
+    sources:
+    - https://github.com/PropheticAI/helm-charts
+    type: application
+    urls:
+    - https://github.com/PropheticAI/helm-charts/releases/download/prophet-collector-0.2.0/prophet-collector-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2026-02-27T04:42:54.732360369Z"
     description: Prophet network collector — deploys a DaemonSet that captures traffic
       on every node in the cluster
@@ -24,4 +47,4 @@ entries:
     urls:
     - https://github.com/PropheticAI/helm-charts/releases/download/prophet-collector-0.1.0/prophet-collector-0.1.0.tgz
     version: 0.1.0
-generated: "2026-02-27T04:42:54.732366549Z"
+generated: "2026-02-27T05:49:40.880565159Z"
