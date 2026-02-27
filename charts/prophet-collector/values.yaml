@@ -13,6 +13,10 @@ image:
   tag: latest
   pullPolicy: Always
 
+# -- Image pull secrets (needed for private repos like go-collector-debug)
+imagePullSecrets: []
+# Example: --set imagePullSecrets[0].name=dockerhub-credentials
+
 # -- Data sources to enable
 dataSources:
   # -- Enable packet capture (AF_PACKET)
