@@ -1,8 +1,15 @@
 # Prophet Collector Helm Chart - values.yaml
+#
+# Service configuration (what to collect, interfaces, performance) comes from
+# the controller via the node profile. Only bootstrap settings are needed here.
 
 # -- Organization token for device authorization (required)
-# Get this from the Prophet UI: Nodes > New Node > Organization Token
+# Get this from the Prophet UI: Nodes > Profiles > Deploy
 orgToken: ""
+
+# -- Profile ID to inherit configuration from (optional but recommended)
+# Get this from the Prophet UI: Nodes > Profiles
+profileId: ""
 
 # -- Prophet environment (prod or dev)
 env: prod
@@ -15,45 +22,6 @@ image:
 
 # -- Image pull secrets (needed for private repos like go-collector-debug)
 imagePullSecrets: []
-# Example: --set imagePullSecrets[0].name=dockerhub-credentials
-
-# -- Data sources to enable
-dataSources:
-  # -- Enable packet capture (AF_PACKET)
-  packet: true
-  # -- Enable NetFlow/IPFIX collection (UDP 2055/9991)
-  netflow: false
-  # -- Enable Suricata log forwarding
-  suricata: false
-
-# -- Packet capture settings
-packetCapture:
-  # -- Enable deep packet inspection (TLS/DNS parsing)
-  dpi: true
-  # -- Enable AF_PACKET (Linux ring buffer, recommended)
-  afpacket: true
-  # -- Unpack GRE encapsulated packets
-  gre: false
-  # -- Extract cleartext payload data
-  extractPayload: false
-  # -- Correlate packets with process IDs
-  correlateProcessIds: false
-  # -- Network interfaces to monitor (empty = all)
-  interfaces: []
-  # -- Network interfaces to exclude
-  excludeInterfaces: []
-
-# -- Performance tuning
-performance:
-  # -- Number of packet decoder workers (0 = auto, uses CPU count)
-  numWorkers: 0
-  # -- Number of parallel spooler instances
-  numSpoolers: 4
-  # -- Slim mode for resource-constrained nodes
-  slim: false
-
-# -- Tags to add to all flows (comma-separated or list)
-tags: []
 
 # -- Persistent storage for collector state (credentials, node_id)
 persistence:
@@ -62,9 +30,7 @@ persistence:
   # -- Host path on each node for collector state
   hostPath: /var/lib/prophet-collector
 
-# -- Resource requests and limits
 # -- Resource requests/limits (collector auto-scales memory based on system RAM)
-# Set limits manually if needed: --set resources.limits.memory=8Gi
 resources: {}
 
 # -- Node selector for scheduling
