@@ -36,25 +36,22 @@ spec:
               add:
                 - NET_RAW
                 - NET_ADMIN
+          command: ["./collector"]
+          args:
+            - "--org-token=$(ORG_TOKEN)"
+            - "--environment={{ .Values.env }}"
+            - "--dynamic_node"
+            - "--hostname=$(NODE_NAME)"
+            {{- if .Values.profileId }}
+            - "--profile_id={{ .Values.profileId }}"
+            {{- end }}
           env:
-            # Bootstrap — auth + identity only
-            # Service config (what to collect, interfaces, performance) comes
-            # from the controller via the node profile.
-            - name: env
-              value: {{ .Values.env | quote }}
-            - name: org_token
+            - name: ORG_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ include "prophet-collector.fullname" . }}
                   key: org-token
-            {{- if .Values.profileId }}
-            - name: PROFILE_ID
-              value: {{ .Values.profileId | quote }}
-            {{- end }}
-            # Identity — use K8s node name for stable per-pod identity
-            - name: dynamic_node
-              value: "true"
-            - name: hostname
+            - name: NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
