@@ -38,7 +38,7 @@ spec:
                 - NET_ADMIN
           command: ["./collector"]
           args:
-            - "--org-token=$(ORG_TOKEN)"
+            - "--provision-token=$(PROVISION_TOKEN)"
             - "--environment={{ .Values.env }}"
             - "--dynamic_node"
             - "--hostname=$(NODE_NAME)"
@@ -46,11 +46,11 @@ spec:
             - "--profile_id={{ .Values.profileId }}"
             {{- end }}
           env:
-            - name: ORG_TOKEN
+            - name: PROVISION_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ include "prophet-collector.fullname" . }}
-                  key: org-token
+                  key: provision-token
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
@@ -67,10 +67,6 @@ spec:
           {{- end }}
       volumes:
         - name: prophet-state
-          {{- if .Values.persistence.enabled }}
           hostPath:
             path: {{ .Values.persistence.hostPath | default "/var/lib/prophet-collector" }}
             type: DirectoryOrCreate
-          {{- else }}
-          emptyDir: {}
-          {{- end }}

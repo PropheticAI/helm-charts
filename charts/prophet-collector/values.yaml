@@ -3,9 +3,9 @@
 # Service configuration (what to collect, interfaces, performance) comes from
 # the controller via the node profile. Only bootstrap settings are needed here.
 
-# -- Organization token for device authorization (required)
-# Get this from the Prophet UI: Nodes > Profiles > Deploy
-orgToken: ""
+# -- Provision token for node registration (required)
+# Get this from the Prophet UI: Nodes > New Node or Nodes > Profiles > Deploy
+provisionToken: ""
 
 # -- Profile ID to inherit configuration from (optional but recommended)
 # Get this from the Prophet UI: Nodes > Profiles
@@ -25,8 +25,6 @@ imagePullSecrets: []
 
 # -- Persistent storage for collector state (credentials, node_id)
 persistence:
-  # -- Enable persistent storage (uses hostPath for per-node state)
-  enabled: true
   # -- Host path on each node for collector state
   hostPath: /var/lib/prophet-collector
 
