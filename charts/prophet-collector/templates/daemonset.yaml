@@ -36,10 +36,9 @@ spec:
               add:
                 - NET_RAW
                 - NET_ADMIN
-          command: ["./collector"]
           args:
             - "--provision-token=$(PROVISION_TOKEN)"
-            - "--environment={{ .Values.env }}"
+            - "--env={{ .Values.env }}"
             - "--dynamic_node"
             - "--hostname=$(NODE_NAME)"
             {{- if .Values.profileId }}
