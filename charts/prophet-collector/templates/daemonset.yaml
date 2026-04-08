@@ -37,7 +37,9 @@ spec:
                 - NET_RAW
                 - NET_ADMIN
           args:
+            {{- if .Values.provisionToken }}
             - "--provision-token=$(PROVISION_TOKEN)"
+            {{- end }}
             - "--env={{ .Values.env }}"
             - "--dynamic_node"
             - "--hostname=$(NODE_NAME)"
