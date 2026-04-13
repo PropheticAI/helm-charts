@@ -62,6 +62,9 @@ spec:
           volumeMounts:
             - name: prophet-state
               mountPath: /usr/local/prophet
+            - name: suricata-logs
+              mountPath: /var/log/suricata
+              readOnly: true
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -70,4 +73,8 @@ spec:
         - name: prophet-state
           hostPath:
             path: {{ .Values.persistence.hostPath | default "/var/lib/prophet-collector" }}
+            type: DirectoryOrCreate
+        - name: suricata-logs
+          hostPath:
+            path: /var/log/suricata
             type: DirectoryOrCreate
