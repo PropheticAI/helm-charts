@@ -23,10 +23,11 @@ image:
 # -- Image pull secrets (needed for private repos like go-collector-debug)
 imagePullSecrets: []
 
-# -- Persistent storage for collector state (credentials, node_id)
+# -- Persistent storage for collector state (credentials, node_id, binary, tags)
 persistence:
-  # -- Host path on each node for collector state
-  hostPath: /var/lib/prophet-collector
+  # -- Host path on each node for collector state. Matches the container path
+  # so operators can read tags.txt and other files without translating paths.
+  hostPath: /usr/local/prophet
 
 # -- Resource requests/limits (collector auto-scales memory based on system RAM)
 resources: {}
