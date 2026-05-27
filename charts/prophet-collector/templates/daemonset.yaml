@@ -15,6 +15,11 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      {{- if .Values.processCorrelation.enabled }}
+      # eBPF flow→process correlation needs the host PID namespace so the
+      # /proc bootstrap can map socket inodes to host PIDs (see values.processCorrelation).
+      hostPID: true
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -36,6 +41,16 @@ spec:
               add:
                 - NET_RAW
                 - NET_ADMIN
+                {{- if .Values.processCorrelation.enabled }}
+                # SYS_ADMIN grants bpf()/perf/cgroup-attach on all kernels
+                # (subsumes CAP_BPF/CAP_PERFMON).
+                - SYS_ADMIN
+                {{- end }}
+            {{- if .Values.processCorrelation.enabled }}
+            # Default seccomp blocks bpf()/perf_event_open; Unconfined allows them.
+            seccompProfile:
+              type: Unconfined
+            {{- end }}
           args:
             {{- if .Values.provisionToken }}
             - "--provision-token=$(PROVISION_TOKEN)"
@@ -65,6 +80,16 @@ spec:
             - name: suricata-logs
               mountPath: /var/log/suricata
               readOnly: true
+            {{- if .Values.processCorrelation.enabled }}
+            # Host cgroup-v2 root for the cgroup/UDP BPF attach, and host kernel
+            # BTF for CO-RE (most runtimes expose BTF via the default sysfs, but
+            # mount it explicitly so it's not runtime-dependent).
+            - name: host-cgroup
+              mountPath: /sys/fs/cgroup
+            - name: host-btf
+              mountPath: /sys/kernel/btf
+              readOnly: true
+            {{- end }}
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -78,3 +103,13 @@ spec:
           hostPath:
             path: /var/log/suricata
             type: DirectoryOrCreate
+        {{- if .Values.processCorrelation.enabled }}
+        - name: host-cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+            type: Directory
+        - name: host-btf
+          hostPath:
+            path: /sys/kernel/btf
+            type: DirectoryOrCreate
+        {{- end }}

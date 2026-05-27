@@ -41,3 +41,18 @@ tolerations:
 
 # -- Additional environment variables
 extraEnv: []
+
+# -- eBPF flow→process correlation host access.
+# Provisions the host access the collector needs to attribute flows to the OS
+# process that owns them: the host PID namespace (resolve socket owners), the
+# host cgroup-v2 root mounted (UDP BPF hook), CAP_SYS_ADMIN, and an unconfined
+# seccomp profile (allow bpf()/perf syscalls).
+#
+# On by default so correlation is controlled entirely from the cloud — it
+# ACTIVATES only when the node profile sets process_ids, and the eBPF stays off
+# on kernels <5.8 / without BTF (the collector still captures and stitches
+# normally). Leaving this on but not enabling process_ids has no runtime effect;
+# the capability simply sits available. Set false only to deny the host access
+# outright (e.g. a hardened cluster that will never use correlation).
+processCorrelation:
+  enabled: true
