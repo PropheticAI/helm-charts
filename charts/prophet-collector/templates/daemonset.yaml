@@ -51,6 +51,15 @@ spec:
             seccompProfile:
               type: Unconfined
             {{- end }}
+            {{- if .Values.hostLogs.seLinuxSpc }}
+            # SELinux-enforcing hosts (Amazon Linux 2023, RHEL, Fedora, CentOS) deny
+            # a container reading host /var/log — and especially auditd logs — even
+            # as root, regardless of seccomp. spc_t (super-privileged container)
+            # lifts that confinement so host-log access works. Leave false on
+            # Debian/Ubuntu (AppArmor) hosts, where the mounts alone suffice.
+            seLinuxOptions:
+              type: spc_t
+            {{- end }}
           args:
             {{- if .Values.provisionToken }}
             - "--provision-token=$(PROVISION_TOKEN)"
@@ -80,6 +89,23 @@ spec:
             - name: suricata-logs
               mountPath: /var/log/suricata
               readOnly: true
+            # Host log forwarding (read-only) — ALWAYS provisioned, like the
+            # suricata mount. There is deliberately no helm enable flag: whether
+            # host logs are collected is decided solely by the cloud/node config
+            # (Nodes > services > host logs), so the feature is enabled in ONE
+            # place. File sources (auth/audit/syslog/kern/cron/package) live under
+            # /var/log, which also carries the persistent journal (/var/log/journal);
+            # the volatile journal and machine-id (journalctl uses it to locate the
+            # journal namespace) are separate paths.
+            - name: host-var-log
+              mountPath: /var/log
+              readOnly: true
+            - name: host-run-log-journal
+              mountPath: /run/log/journal
+              readOnly: true
+            - name: host-machine-id
+              mountPath: /etc/machine-id
+              readOnly: true
             {{- if .Values.processCorrelation.enabled }}
             # Host cgroup-v2 root for the cgroup/UDP BPF attach, and host kernel
             # BTF for CO-RE (most runtimes expose BTF via the default sysfs, but
@@ -103,6 +129,21 @@ spec:
           hostPath:
             path: /var/log/suricata
             type: DirectoryOrCreate
+        # Host log forwarding host paths — always provisioned (see volumeMounts).
+        - name: host-var-log
+          hostPath:
+            path: /var/log
+            type: Directory
+        - name: host-run-log-journal
+          hostPath:
+            # Volatile journal store (hosts running journald with Storage=volatile
+            # keep the journal here, not under /var/log). Created empty if absent.
+            path: /run/log/journal
+            type: DirectoryOrCreate
+        - name: host-machine-id
+          hostPath:
+            path: /etc/machine-id
+            type: File
         {{- if .Values.processCorrelation.enabled }}
         - name: host-cgroup
           hostPath:

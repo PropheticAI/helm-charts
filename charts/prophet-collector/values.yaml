@@ -56,3 +56,19 @@ extraEnv: []
 # outright (e.g. a hardened cluster that will never use correlation).
 processCorrelation:
   enabled: true
+
+# -- Host log forwarding.
+# The collector image bundles journalctl and the DaemonSet ALWAYS mounts the
+# host's /var/log read-only (all file sources — auth/audit/syslog/kern/cron/
+# package — plus the persistent journal), the volatile journal (/run/log/journal),
+# and /etc/machine-id. There is deliberately NO enable flag here: whether host
+# logs are collected is controlled entirely by the cloud (Nodes > services > host
+# logs), so operators enable the feature in ONE place — never by editing the
+# DaemonSet. This block only carries host-environment settings.
+hostLogs:
+  # -- SELinux super-privileged container label (seLinuxOptions type: spc_t).
+  # Required on SELinux-enforcing hosts (Amazon Linux 2023, RHEL, Fedora, CentOS)
+  # where the default container SELinux type is denied reading host /var/log and
+  # auditd logs even as root. This is a host-OS property, not a feature toggle.
+  # Leave false on Debian/Ubuntu (AppArmor) hosts.
+  seLinuxSpc: false
