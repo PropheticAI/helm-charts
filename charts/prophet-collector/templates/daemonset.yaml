@@ -32,6 +32,34 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.persistence.migrateFromLegacyHostPath }}
+      initContainers:
+        # One-time, idempotent migration of collector state from the legacy host
+        # path to the standard one. Copies only when the legacy state exists AND
+        # the standard path doesn't already have it — so it's a no-op on fresh
+        # nodes and after the first migration. Without this, the hostPath change
+        # orphans each node's stored access_key and the collector falls back to
+        # (interactive, headless-incompatible) device auth.
+        - name: migrate-state
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              if [ -f /legacy-state/collector_state.enc ] && [ ! -f /usr/local/prophet/collector_state.enc ]; then
+                echo "[migrate-state] copying state from {{ .Values.persistence.migrateFromLegacyHostPath }} -> {{ .Values.persistence.hostPath }}"
+                cp -an /legacy-state/collector_state.enc /legacy-state/device_credentials.json /legacy-state/tags.txt /usr/local/prophet/ 2>/dev/null || true
+                echo "[migrate-state] done"
+              else
+                echo "[migrate-state] nothing to migrate (no legacy state, or already migrated)"
+              fi
+          volumeMounts:
+            - name: prophet-state
+              mountPath: /usr/local/prophet
+            - name: legacy-state
+              mountPath: /legacy-state
+              readOnly: true
+      {{- end }}
       containers:
         - name: collector
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -125,6 +153,12 @@ spec:
           hostPath:
             path: {{ .Values.persistence.hostPath | default "/var/lib/prophet-collector" }}
             type: DirectoryOrCreate
+        {{- if .Values.persistence.migrateFromLegacyHostPath }}
+        - name: legacy-state
+          hostPath:
+            path: {{ .Values.persistence.migrateFromLegacyHostPath }}
+            type: DirectoryOrCreate
+        {{- end }}
         - name: suricata-logs
           hostPath:
             path: /var/log/suricata

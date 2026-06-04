@@ -28,6 +28,13 @@ persistence:
   # -- Host path on each node for collector state. Matches the container path
   # so operators can read tags.txt and other files without translating paths.
   hostPath: /usr/local/prophet
+  # -- One-time migration: if set, an initContainer copies collector state
+  # (collector_state.enc, node_id, tags) from this legacy host path into
+  # hostPath on first start when hostPath has no state yet. This heals the
+  # 0.4.x→0.5.x hostPath change (/var/lib/prophet-collector → /usr/local/prophet)
+  # so existing fleets keep their stored access_key instead of falling back to
+  # re-provisioning. Idempotent; a no-op for fresh nodes. Set "" to disable.
+  migrateFromLegacyHostPath: /var/lib/prophet-collector
 
 # -- Resource requests/limits (collector auto-scales memory based on system RAM)
 resources: {}
