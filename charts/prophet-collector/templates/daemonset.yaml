@@ -12,6 +12,12 @@ spec:
     metadata:
       labels:
         {{- include "prophet-collector.selectorLabels" . | nindent 8 }}
+      {{- if .Values.apparmor.unconfined }}
+      annotations:
+        # Pre-1.30 clusters honor only this annotation; 1.30+ requires it to
+        # match the securityContext.appArmorProfile field below (it does).
+        container.apparmor.security.beta.kubernetes.io/collector: unconfined
+      {{- end }}
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
@@ -77,6 +83,14 @@ spec:
             {{- if .Values.processCorrelation.enabled }}
             # Default seccomp blocks bpf()/perf_event_open; Unconfined allows them.
             seccompProfile:
+              type: Unconfined
+            {{- end }}
+            {{- if .Values.apparmor.unconfined }}
+            # The memory ledger's process attribution reads peer /proc entries
+            # (ptrace-read class); default runtime AppArmor profiles deny it,
+            # blinding attribution and flooding the audit log (see values.apparmor).
+            # Older API servers drop this field and use the pod annotation above.
+            appArmorProfile:
               type: Unconfined
             {{- end }}
             {{- if .Values.hostLogs.seLinuxSpc }}

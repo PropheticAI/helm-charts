@@ -64,6 +64,18 @@ extraEnv: []
 processCorrelation:
   enabled: true
 
+# -- AppArmor confinement.
+# The collector's memory ledger (v0.3.12+) attributes host memory by reading
+# peer /proc entries — a ptrace-read-class access that the container runtimes'
+# default AppArmor profiles (cri-containerd.apparmor.d, docker-default) deny.
+# Confined, the collector still runs but ledger attribution is blind (memory
+# reports as unattributed) and every scan floods the host audit log with
+# apparmor DENIED events. Unconfined lifts only the AppArmor profile; it is a
+# no-op on hosts without AppArmor (SELinux hosts: see hostLogs.seLinuxSpc).
+# Set false to keep the runtime's default profile and forgo attribution.
+apparmor:
+  unconfined: true
+
 # -- Host log forwarding.
 # The collector image bundles journalctl and the DaemonSet ALWAYS mounts the
 # host's /var/log read-only (all file sources — auth/audit/syslog/kern/cron/
