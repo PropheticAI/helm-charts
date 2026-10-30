@@ -102,10 +102,10 @@ spec:
             seLinuxOptions:
               type: spc_t
             {{- end }}
+          # The provision token is PROVISION_TOKEN below, never an argument:
+          # the node reads it from its environment, and an argument is in
+          # every host user's process list.
           args:
-            {{- if .Values.provisionToken }}
-            - "--provision-token=$(PROVISION_TOKEN)"
-            {{- end }}
             - "--env={{ .Values.env }}"
             - "--dynamic_node"
             - "--hostname=$(NODE_NAME)"
