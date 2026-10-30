@@ -44,18 +44,17 @@ See [values.yaml](charts/prophet-collector/values.yaml) for all options.
 
 #### Examples
 
-Use a private debug image:
+Pin a release (every release is also an image tag of the same name):
 ```bash
 helm install prophet-collector prophet/prophet-collector \
   --set provisionToken=<token> \
-  --set image.repository=propheticai/go-collector-debug \
-  --set image.tag=dev \
-  --set imagePullSecrets[0].name=dockerhub-credentials
+  --set image.tag=v0.7.0
 ```
 
-Connect to dev environment:
+Connect to dev environment (dev's builds are the `:dev` image):
 ```bash
 helm install prophet-collector prophet/prophet-collector \
   --set provisionToken=<token> \
-  --set env=dev
+  --set env=dev \
+  --set image.tag=dev
 ```
